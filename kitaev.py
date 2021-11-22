@@ -7,6 +7,8 @@ Created on Fri Nov 19 13:24:37 2021
 import kwant
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
+
 
 def make_kitaev_chain_finite(t=1, mu=1, Delta=1, L=25):
     """
@@ -109,8 +111,19 @@ def plot_spectrum(syst, mu):
     fig.canvas.manager.set_window_title("Bandas de energía de una cadena finita")    
     plt.xlabel(r"$\frac{\mu}{t}$")
     plt.ylabel(r"Energía")
-
-def main():
+    
+# The function to be called anytime a slider's value changes
+def update(val):
+    global fig, kitaev_infinite
+    new_bands = kwant.physics.Bands(kitaev_infinite, params=dict(t=1, mu=val, Delta=1))
+    line0, line1 = fig.axes[0].lines
+    line0.set_ydata([new_bands(k)[0] for k in line0.get_xdata()])
+    line1.set_ydata([new_bands(k)[1] for k in line1.get_xdata()])
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    
+def main():    
+    global kitaev_finite, kitaev_infinite, mu_slider, fig
     kitaev_finite = make_kitaev_chain_finite()
     # Check that the system looks as intended.
     #kwant.plot(syst)
@@ -125,9 +138,14 @@ def main():
     # In the case of an infinite kitaev chain
     kitaev_infinite = make_kitaev_chain_infinite()
     kitaev_infinite = kitaev_infinite.finalized()
-    fig = kwant.plotter.bands(kitaev_infinite, params=dict(t=1, mu=1, Delta=1))
-    fig.canvas.manager.set_window_title("Bandas de energía de una cadena finita")    
+    fig = kwant.plotter.bands(kitaev_infinite, params=dict(t=1, mu=1, Delta=1), show=False)
+    fig.canvas.manager.set_window_title("Bandas de energía de una cadena infinita")
+    # Make a horizontal slider to control the frequency.
+    ax_mu = plt.axes([0.25, 0.1, 0.65, 0.03])
+    plt.subplots_adjust(left=0.25, bottom=0.25)
+    mu_slider = Slider(ax=ax_mu, label=r'$\mu$', valmin=-4, valmax=4, valinit=1)
     
 if __name__ == '__main__':
     main()
+    mu_slider.on_changed(update)
     
