@@ -8,6 +8,10 @@ import kwant
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+import os
+
+my_path = os.path.abspath(__file__) # Figures out the absolute path for you in case your working directory moves around.
+
 
 sigma_x = np.array([[0, 1], [1, 0]])
 sigma_y = np.array([[0, -1j], [1j, 0]])
@@ -116,7 +120,7 @@ def plot_spectrum(syst, mu, params):
     plt.yticks([-2*Delta_1, -Delta_1, 0, Delta_1, 2*Delta_1], [r"$-2\Delta_1$", r"$-\Delta_1$",
                                    0 ,r"$\Delta_1$", r"$2\Delta_1$"])
     plt.ylim((-3*Delta_1, 3*Delta_1))
-
+    return fig
     
 # The function to be called anytime a slider's value changes
 def update(value):
@@ -144,7 +148,8 @@ def main():
     mu = np.linspace(-30, 30)
     # We should see the energy bands.
     params = dict(t=10, lambda_R=5, Delta_0=0, Delta_1=2)
-    plot_spectrum(tritops_finite, mu, params=params)
+    fig = plot_spectrum(tritops_finite, mu, params=params)
+    fig.savefig("../Images/Bandas de un tritops finito.png")
     
     tritops_infinite = make_low_energy_model_infinite()
     tritops_infinite = tritops_infinite.finalized()
@@ -159,7 +164,8 @@ def main():
     #plt.subplots_adjust(left=0.25, bottom=0.25)
     ax_mu = fig.add_axes([0.25, 0.15, 0.65, 0.03])
     mu_slider = Slider(ax=ax_mu, label=r'$\mu$', valmin=-10, valmax=10, valinit=0)
-    
+    fig.savefig("../Images/Bandas de un tritops infinito.png")
+
 if __name__ == '__main__':
     main()
     Rashba_slider.on_changed(update)
