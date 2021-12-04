@@ -17,6 +17,13 @@ tau_x = np.array([[0, 1], [1, 0]])
 tau_y = np.array([[0, -1j], [1j, 0]])
 tau_z = np.array([[1, 0], [0, -1]])
 
+def onsite(site, mu, Delta_0):
+    return -mu * np.kron(sigma_z, np.eye(2)) - Delta_0 * np.kron(sigma_y, sigma_y)
+
+def hopping(site1, site2, t, lambda_R, Delta_1):     #np.kron() is the tensor product
+    return (-t * np.kron(sigma_z, np.eye(2)) - lambda_R * np.kron(sigma_z, 1j*sigma_y)
+            - Delta_1 * np.kron(sigma_y, sigma_y))
+
 def make_low_energy_model_finite(mu=0, t=10, lambda_R=5, Delta_0=0, Delta_1=2, L=25):
     """
     Minimal low energy level for TRITOPS based on [Zhang] equation 1
@@ -45,12 +52,7 @@ def make_low_energy_model_finite(mu=0, t=10, lambda_R=5, Delta_0=0, Delta_1=2, L
     """
     syst = kwant.Builder()
     lat = kwant.lattice.chain(norbs=4)      #four orbitals per site, psi=(c+, c-, c*+, c*-)
-    def onsite(site, mu, Delta_0):
-        return -mu * np.kron(sigma_z, np.eye(2)) - Delta_0 * np.kron(sigma_y, sigma_y)
     syst[(lat(x) for x in range(L))] = onsite
-    def hopping(site1, site2, t, lambda_R, Delta_1):     #np.kron() is the tensor product
-        return (-t * np.kron(sigma_z, np.eye(2)) - lambda_R * np.kron(sigma_z, 1j*sigma_y)
-                - Delta_1 * np.kron(sigma_y, sigma_y))
     syst[lat.neighbors()] = hopping
     return syst
 
@@ -81,12 +83,7 @@ def make_low_energy_model_infinite(mu=0, t=10, lambda_R=5, Delta_0=0, Delta_1=2)
     sym = kwant.TranslationalSymmetry((-1,))
     syst = kwant.Builder(sym)
     lat = kwant.lattice.chain(norbs=4)      #four orbitals per site, psi=(c+, c-, c*+, c*-)
-    def onsite(site, mu, Delta_0):
-        return -mu * np.kron(sigma_z, np.eye(2)) + Delta_0 * np.kron(sigma_y, sigma_y)
     syst[lat(0)] = onsite
-    def hopping(site1, site2, t, lambda_R, Delta_1):     #np.kron() is the tensor product
-        return (-t * np.kron(sigma_z, np.eye(2)) - lambda_R * np.kron(sigma_z, 1j*sigma_y)
-                - Delta_1 * np.kron(sigma_y, sigma_y))
     syst[kwant.HoppingKind((1,), lat)] = hopping
     return syst
 
