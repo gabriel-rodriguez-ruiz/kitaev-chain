@@ -9,6 +9,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 
+#Pauli matrices
+tau_z = np.array([[1, 0],[0, -1]])
+tau_y = np.array([[0, -1j],[1j, 0]])
+
+def onsite(onsite, mu):
+    return -mu * tau_z
+
+def hop(site1, site2, t, Delta):
+    return -t * tau_z - 1j * Delta * tau_y
 
 def make_kitaev_chain_finite(t=1, mu=1, Delta=1, L=25):
     """
@@ -31,9 +40,6 @@ def make_kitaev_chain_finite(t=1, mu=1, Delta=1, L=25):
         The representation for the Kitaev chain.
 
     """
-    #Pauli matrices
-    tau_z = np.array([[1, 0],[0, -1]])
-    tau_y = np.array([[0, -1j],[1j, 0]])
     # Start with an empty tight-binding system. On each site, there
     # are now electron and hole orbitals, so we must specify the
     # number of orbitals per site 'norbs'.
@@ -41,12 +47,8 @@ def make_kitaev_chain_finite(t=1, mu=1, Delta=1, L=25):
     lat = kwant.lattice.chain(norbs=2)  
     # The superconducting order parameter couples electron and hole orbitals
     # on each site, and hence enters as an onsite potential
-    def onsite(onsite, mu):
-        return -mu * tau_z
     kitaev_chain_finite[(lat(x) for x in range(L))] = onsite
     # Hoppings
-    def hop(site1, site2, t, Delta):
-        return -t * tau_z - 1j * Delta * tau_y
     kitaev_chain_finite[lat.neighbors()] = hop   
     return kitaev_chain_finite    
 
@@ -82,12 +84,8 @@ def make_kitaev_chain_infinite(t=1, mu=1, Delta=1):
 
     # The superconducting order parameter couples electron and hole orbitals
     # on each site, and hence enters as an onsite potential
-    def onsite(site, mu):
-        return -mu * tau_z
     kitaev_chain_infinite[lat(0)] = onsite
     # Hoppings
-    def hop(site1, site2, t, Delta):
-        return -t * tau_z - 1j * Delta * tau_y
     kitaev_chain_infinite[kwant.HoppingKind((1,), lat)] = hop   
     return kitaev_chain_infinite    
 
